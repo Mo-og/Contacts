@@ -1,0 +1,15 @@
+<resources>
+    <string name="app_name">Список контактов</string>
+    <string name="contacts_title">Контакты</string>
+    <string name="textview_name_placeholder">Имя</string>
+    <string name="textview_email_placeholder">Email</string>
+    <string name="textview_phone_placeholder">Телефон</string>
+    <string name="button_add">Добавить</string>
+    <string name="button_take_photo">Снять фото</string>
+    <string name="button_cancel">Отменить</string>
+    <string name="et_name">Имя</string>
+    <string name="et_email">Email</string>
+    <string name="et_phone">Телефон</string>
+    <string name="add_contact">Добавить контакт</string>
+    <string name="contact_list_is_empty">Список контактов пуст</string>
+</resources>
