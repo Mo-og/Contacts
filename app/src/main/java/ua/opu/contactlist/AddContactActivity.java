@@ -21,11 +21,13 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.concurrent.Executors;
 
 public class AddContactActivity extends AppCompatActivity {
 
     private ImageView mContactImage;
     private Uri mContactImageUri;
+    private AppDatabase db;
 
     private static final int IMAGE_CAPTURE_REQUEST_CODE = 7777;
 
@@ -35,6 +37,7 @@ public class AddContactActivity extends AppCompatActivity {
         setContentView(R.layout.activity_add_contact);
         setWindow();
 
+        db = AppDatabase.getInstance(this);
         mContactImage = findViewById(R.id.profile_image);
 
         EditText nameEditText = findViewById(R.id.name_et);
@@ -51,14 +54,11 @@ public class AddContactActivity extends AppCompatActivity {
             String name = nameEditText.getText().toString();
             String email = EmailEditText.getText().toString();
             String phone = PhoneEditText.getText().toString();
+            String image = mContactImageUri.toString();
 
-            Intent i = new Intent();
-            i.putExtra(Intent.EXTRA_USER, name);
-            i.putExtra(Intent.EXTRA_EMAIL, email);
-            i.putExtra(Intent.EXTRA_PHONE_NUMBER, phone);
-            i.putExtra(Intent.EXTRA_ORIGINATING_URI, mContactImageUri.toString());
-
-            setResult(RESULT_OK, i);
+            Contact contact = new Contact(name, email, phone, image);
+            Executors.newSingleThreadExecutor().execute(
+                    () -> db.contactDAO().insertContact(contact));
             finish();
         });
 
@@ -90,7 +90,7 @@ public class AddContactActivity extends AppCompatActivity {
             String filename = "contact_" + System.currentTimeMillis() + ".png";
 
             File outputFile = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), filename);
-            FileOutputStream fileOutputStream = null;
+            FileOutputStream fileOutputStream;
             try {
                 fileOutputStream = new FileOutputStream(outputFile);
                 imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, fileOutputStream);

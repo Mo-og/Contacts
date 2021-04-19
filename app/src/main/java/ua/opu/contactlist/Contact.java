@@ -2,14 +2,21 @@ package ua.opu.contactlist;
 
 import android.net.Uri;
 
+import androidx.room.Entity;
+import androidx.room.Ignore;
+import androidx.room.PrimaryKey;
+
 import java.util.Random;
 
+@Entity(tableName = "contacts")
 public class Contact {
 
+    @PrimaryKey(autoGenerate = true)
+    private int id;
     private String name;
     private String email;
     private String phone;
-    private Uri uri;
+    private String uri;
 
     public static Contact generateContact() {
         Random random = new Random();
@@ -50,7 +57,20 @@ public class Contact {
         return new Contact(name, email, phone, null);
     }
 
-    public Contact(String name, String email, String phone, Uri uri) {
+    @Ignore
+    public Contact(String name, String email, String phone, String uri) {
+        this.name = name;
+        this.email = email;
+        this.phone = phone;
+        this.uri = uri;
+    }
+
+    @Ignore
+    public Contact() {
+    }
+
+    public Contact(int id, String name, String email, String phone, String uri) {
+        this.id = id;
         this.name = name;
         this.email = email;
         this.phone = phone;
@@ -81,11 +101,19 @@ public class Contact {
         this.phone = phone;
     }
 
-    public Uri getUri() {
+    public String getUri() {
         return uri;
     }
 
-    public void setUri(Uri uri) {
+    public void setUri(String uri) {
         this.uri = uri;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }

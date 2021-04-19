@@ -20,6 +20,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
 
 public class MainActivity extends AppCompatActivity implements ContactsAdapter.DeleteItemListener {
 
@@ -31,9 +33,13 @@ public class MainActivity extends AppCompatActivity implements ContactsAdapter.D
     private List<Contact> list = new ArrayList<>();
     private ContactsAdapter adapter;
 
-    public void addRandomContact(View view){
-        list.add(Contact.generateContact());
-        adapter.notifyDataSetChanged();
+    private AppDatabase db;
+    private Executor executor = Executors.newSingleThreadExecutor();
+
+
+    public void addRandomContact(View view) {
+        executor.execute(() -> db.contactDAO().insertContact(Contact.generateContact()));
+        updateData();
     }
 
     @Override
@@ -46,12 +52,13 @@ public class MainActivity extends AppCompatActivity implements ContactsAdapter.D
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
         adapter = new ContactsAdapter(getApplicationContext(), list, this);
         mRecyclerView.setAdapter(adapter);
+        db = AppDatabase.getInstance(this);
 
         mAddContactButton = findViewById(R.id.fab);
         addRandomButton = findViewById(R.id.fab5);
         mAddContactButton.setOnClickListener(v -> {
             Intent i = new Intent(this, AddContactActivity.class);
-            startActivityForResult(i, ADD_CONTACT_REQUEST_CODE);
+            startActivity(i);
         });
     }
 
@@ -65,7 +72,7 @@ public class MainActivity extends AppCompatActivity implements ContactsAdapter.D
             String phone = data.getStringExtra(Intent.EXTRA_PHONE_NUMBER);
             Uri uri = Uri.parse(data.getStringExtra(Intent.EXTRA_ORIGINATING_URI));
 
-            list.add(new Contact(name, email, phone, uri));
+            list.add(new Contact(name, email, phone, uri.getPath()));
             adapter.notifyDataSetChanged();
         }
     }
@@ -104,13 +111,28 @@ public class MainActivity extends AppCompatActivity implements ContactsAdapter.D
     @Override
     protected void onStart() {
         super.onStart();
-
+        updateData();
         verifyStoragePermissions();
     }
 
     @Override
-    public void onDeleteItem(int position) {
-        list.remove(position);
-        adapter.notifyDataSetChanged();
+    public void onDeleteItem(int id) {
+        executor.execute(() -> {
+            db.contactDAO().deleteContactById(id);
+            updateData();
+        });
+    }
+
+    private void updateData() {
+        executor.execute(() -> {
+            // С помощью метода getAll() получаем все заметки из БД
+            list = new ArrayList<>(db.contactDAO().getAll());
+            runOnUiThread(() -> {
+                mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
+                adapter = new ContactsAdapter(this, list, this);
+                mRecyclerView.setAdapter(adapter);
+            });
+        });
+
     }
 }

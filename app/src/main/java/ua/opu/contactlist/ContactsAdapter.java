@@ -1,6 +1,7 @@
 package ua.opu.contactlist;
 
 import android.content.Context;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -61,11 +62,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             return;
 
         Contact contact = list.get(position);
-
-        holder.image.setImageURI(contact.getUri());
+        holder.deleteButton.setOnClickListener(view -> listener.onDeleteItem(contact.getId()));
+        if (contact.getUri()!=null)
+        holder.image.setImageURI(Uri.parse(contact.getUri()));
+        else holder.image.setImageURI(null);
         holder.name.setText(contact.getName());
         holder.email.setText(contact.getEmail());
         holder.phone.setText(contact.getPhone());
+
     }
 
     @Override
@@ -73,14 +77,14 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
         return Math.max(list.size(), 1);
     }
 
-    static class ContactHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    static class ContactHolder extends RecyclerView.ViewHolder {
         ImageView image;
         TextView name;
         TextView email;
         TextView phone;
 
         ImageButton deleteButton;
-        DeleteItemListener listener;
+
 
         public ContactHolder(@NonNull View itemView, DeleteItemListener listener) {
             super(itemView);
@@ -91,16 +95,10 @@ public class ContactsAdapter extends RecyclerView.Adapter<ContactsAdapter.Contac
             phone = itemView.findViewById(R.id.phone);
 
             deleteButton = itemView.findViewById(R.id.clearButton);
-            this.listener = listener;
 
-            if ((int) itemView.getTag() == NON_EMPTY_LIST_TYPE) {
-                deleteButton.setOnClickListener(this);
-            }
+
+
         }
 
-        @Override
-        public void onClick(View v) {
-            listener.onDeleteItem(getAdapterPosition());
-        }
     }
 }
